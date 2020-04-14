@@ -1,0 +1,213 @@
+---
+title: "briana-sealey-ADA-data-reanalysis-assignment"
+author: "Briana Sealey"
+date: "4/6/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	warning = TRUE,
+	message = TRUE,
+	comment = "##",
+	prompt = FALSE,
+	tidy = TRUE,
+	tidy.opts = list(blank = FALSE, width.cutoff = 75),
+	fig.path = "img/",
+	fig.align = "center"
+)
+```
+
+## Introduction
+
+There is imperfection in an animal's ability to perceive physical reality and their cognitive processes and this inconsistency can lead to incorrect assessments in prey choice. Specifically, proportional processing, the ability to assess differences between quantities, can be constrained. This was tested in Trachops cirrhosus, given various quantities of frog choruses. Bats genreally perferred larger chorus sizes, but failed to discern the differences in frog chorus sizes in trails between larger choruses (i.e. choruses of 5 and 6 frogs) vs. smaller ones (i.e. 1 and 2 frogs). Thus, this experiments determined that T. cirrhosus relay on the relative differences and not the absolute differences in choruses and may be less persnickety when foraging in larger chorusing groups of frogs.
+
+## Visualization of Data
+
+Calculated absolute & relative difference in call number (absolute diff/mean(number of calls of the twos stimuli))
+
+Fitted two generalized linear mixed models (binomial) with 'absolute diff' & 'relative diff' as predictor variables (packages used: {lme4}) & individual bats were included as a random factor
+
+The two models above (as well as a null model with random variable 'bat') were compared based on AIC values
+
+Compared linear model to a quadratic polynomial model using F test
+
+[Include a view of the first few lines of the data set plus exploratory data analysis - e.g., overview of descriptive statistics included in the paper, plots, etc.
+
+## Replications/Reanalysis
+
+[Be sure to explain what replications you are doing and comment your code so that it is easy for a reader to understand. Include in this section relevant tables/figures/values from the original paper for comparison to what you accomplished with your replication.]
+
+```{r}
+#load packages necessary to complete analysis
+library(lme4)
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(ggthemes)
+library(gridExtra)
+library(AICcmodavg)
+
+#read in data
+d <- "/Users/brianasealey/Desktop/Repo/briana-sealey-ADA-data-reanalysis-assignment/Hemingway et al._2018_data.csv"
+data <- read_csv(d, col_names = TRUE) #reading in the data
+
+#Taking a look at the data-set
+names(data)
+head(data, 10)
+```
+
+####Replicating calculcation of proportion of choices observed in each treatmenet level
+
+```{r}
+
+#Obtaining proportion of choices observed
+data %>%
+  group_by(Treatment) %>%
+  summarise(proportion = sum(Larger)/n()) -> proportion_results
+proportion_results
+
+#some proportions calculated above are slightly different than those reported in the data set:
+
+Hemingway <- c(0.8824, 0.9118, 0.8235, 0.8235, 0.7941, 0.8235, 0.6176, 0.6471, 0.7353, 0.4706, 0.7059, 0.6765, 0.6471, 0.7353, 0.5000) #obtained proportions from Table 1 provided in the article
+
+cbind(proportion_results, Hemingway) #looking at my calculations vs. their's
+
+#Here it's clearer that Treatment levels 2v6 & 5v6 are slightly different proportions
+
+#Handchecking 2v6
+table(data$Treatment) #returns a tibble with 35 rows
+
+data %>%
+  filter(Treatment == "2v6") %>%
+  count(Larger == "1") #total counts of when the bats chose the larger chorus = 25
+
+25/35 #proportion value I get
+25/34 #proportion value Hemingway et al gets
+
+#This suggests a) there is a duplication in data, b) one individual was tested 3 times, instead of 2 times, or c) calculation error
+
+#Checking for duplications
+
+table(data$Animal) #There are 15 different treatments so there should be 30 total tests for each individual (if they were tested twice) However, indiviudal A was tested at least 3 times (total trials for this individual is 31 instea dof 30). Or, there was a duplication in the data set for one trial.
+
+#Handchecking 5v6
+data %>%
+  filter(Treatment == "5v6") %>%
+  count(Larger == "1") #total counts of when the bats chose the larger chorus = 18
+
+18/34 #proportion value I get
+18/36 #proportion value Hemingway et al gets
+
+#Given that the total number of 5v6 trials = 34, could be a) trial(s) is/are missing for indivual(s) in the dataset that was provided online or b) calculation error
+```
+
+####Replication of binomial tests
+
+```{r}
+#replicate just one binomial test, to see if this format works
+temp <- filter(data, Treatment== "1v2")
+binom.test(x = sum(temp$Larger), n = nrow(temp), conf.level = 0.95, alternative = "greater")
+
+#Set up a loop to do each of the binomial tests in the proportions; obtaining p-values for each treatment type, where P < 0.005
+for (i in unique(data$Treatment)){
+  temp <- filter(data, Treatment == i)
+  binom <- binom.test(x = sum(temp$Larger), n = nrow(temp), conf.level = 0.95, alternative = "greater")
+  print(binom)
+}
+
+mypvalues <- c(0, 0, 0, 0, 0, 0, 0.115, 0.061, 0.008, 0.696, 0.012, 0.029, 0.061, 0.005, 0.432) #rounded
+theirpvalues <- c(0, 0, 0, 0, 0, 0, 0.055, 0.062, 0.005, 0.432, 0.013, 0.029, 0.062, 0.005, 0.567) #p-values rounded from the Table A1
+
+cbind(mypvalues, theirpvalues)
+
+```
+
+Is it my fault or their fault that the p-values are different from each other? I might have gotten different p-values because Hemingway et al used a different function or program to complete the binomial test than I did. Similar to the proportion value calculations, Hemingway et al might have calculated the values from a differnet data set than what was uploaded online.
+
+####Replicating Figure 2.
+
+```{r}
+#Linear regression graphs
+
+#Calculate absolute and relative differences between chrous size
+data %>%
+  group_by(Treatment) %>%
+  summarise(abs = mean(AbsDiff), rel = mean(RelDiff), prop = sum(Larger)/n()) -> plt
+plt
+
+theme_set(theme_tufte()) #setting theme for plotting graphs
+
+#Graphing Abs Diff
+p1 <- ggplot(plt, aes(x = abs, y = prop)) + 
+  geom_point(color = 'brown3', size = 3) + 
+  geom_smooth(method = lm, fill = 'brown3') +
+  geom_smooth(method = lm, color = 'brown3', se = FALSE) +
+  ylab(label = "Proportion of choices for larger chorus") +
+  xlab(label = "Absolute difference") +
+  theme(axis.line = element_line(colour = "black")) + 
+  scale_x_discrete(label = c("1","2","3","4","5","6"),limits = c("1","2","3","4","5","6")) +
+  scale_y_continuous(limits = c(0.4, 1), breaks = c(0.4,0.5,0.6,0.7,0.8,0.9, 1.0),
+                     label = c("0.4","0.5","0.6","0.7","0.8","0.9", "1.0"))
+
+#Graphing Rel Diff
+p2 <- ggplot(plt, aes(x = rel, y = prop)) + 
+  geom_point(color = 'navy', size = 3) + 
+  geom_smooth(method = lm, fill = 'navy') +
+  geom_smooth(method = lm, color = 'navy', se = FALSE) +
+  ylab(label = "Proportion of choices for larger chorus") +
+  xlab(label = "Relative difference") +
+  theme(axis.line = element_line(colour = "black")) +
+  scale_x_continuous(label = c("0","0.5","1","1.5"), limits = c(0,1.5), breaks = c(0,0.5,1,1.5)) +
+  scale_y_continuous(limits = c(0.4, 1), breaks = c(0.4,0.5,0.6,0.7,0.8,0.9, 1.0),
+                     label = c("0.4","0.5","0.6","0.7","0.8","0.9", "1.0"))
+grid.arrange(p2, p1, ncol = 2, nrow = 1)
+```
+
+#Recreating binomial generalized linear mixed-effect models 
+```{r}
+colnames(data)
+#Larger (0/1) ~ (1 | Animal)
+m1 <- glmer(data$Larger ~ (1 | data$Animal), data = data, family = binomial)
+summary(m1)
+
+#Larger (0/1) ~ (1 | Animal) + Absolute Difference
+m2 <- glmer(data$Larger ~ (1 | data$Animal) + data$AbsDiff, data = data, family = binomial)
+summary(m2)
+
+#Larger (0/1) ~ (1 | Animal) + Relative Difference
+m3 <- glmer(data$Larger ~ (1 | data$Animal) + data$RelDiff, data = data, family = binomial)
+summary(m3)
+
+#Larger (0/1) ~ (1 | Animal) + Rel diff + Abs diff
+m4 <- glmer(data$Larger ~ (1 | data$Animal) + data$RelDiff + data$AbsDiff, data = data, family = binomial)
+summary(m4)
+
+#Larger (0/1) ~ (1 | Animal) + Rel diff + Abs diff + Side (LoR = Left or Right, testing for side biases)
+m5 <- glmer(data$Larger ~ (1 | data$Animal) + data$RelDiff + data$AbsDiff + data$LoR, data = data, family = binomial)
+summary(m5)
+
+#Larger (0/1) ~ (1 | Animal) + Rel diff + Abs diff + Side + Order
+m6 <- glmer(data$Larger ~ (1 | data$Animal) + data$RelDiff + data$AbsDiff + data$LoR + data$Order, data = data, family = binomial)
+summary(m6)
+
+#Compare all models
+AIC(m1, m2, m3, m4, m5, m6)
+
+#Compare all models with AIC
+#val <- AIC(m1, m2, m3, m4, m5, m6)
+#aictab(val, weights = TRUE)
+#AICtab(m1, m2, m3, weights = TRUE)
+
+
+```
+
+
+## Summary/Discussion
+
+[How successful were you at replicating the analyses and visualizations in the study? What problems did you encounter? Why might you have encountered those problems? What details were lacking from the original study's methods that might have hampered your ability to replicate the authors' results?]
+
+f ratio distribution; 
+
+## References
