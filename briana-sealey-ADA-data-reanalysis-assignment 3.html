@@ -202,7 +202,7 @@ library(gridExtra)
 library(AICcmodavg)</code></pre>
 <pre class="r"><code>#read in data
 d &lt;- &quot;Hemingway et al._2018_data.csv&quot;
-data &lt;- read_csv(d, col_names = TRUE)</code></pre>
+data &lt;- read_csv(d, col_names = TRUE) #reading in the data</code></pre>
 <pre><code>## Parsed with column specification:
 ## cols(
 ##   Animal = col_character(),
@@ -316,7 +316,7 @@ summary(lm1)</code></pre>
 ## Multiple R-squared:  0.08159,    Adjusted R-squared:  0.01094 
 ## F-statistic: 1.155 on 1 and 13 DF,  p-value: 0.3021</code></pre>
 <pre class="r"><code>lm2 &lt;- lm(prop ~ rel, data = plt)
-summary(lm2)</code></pre>
+summary(lm2) #This was not presented within the paper, but provided here to display quantitative differences between the two graphs.</code></pre>
 <pre><code>## 
 ## Call:
 ## lm(formula = prop ~ rel, data = plt)
@@ -335,7 +335,6 @@ summary(lm2)</code></pre>
 ## Residual standard error: 0.106 on 13 degrees of freedom
 ## Multiple R-squared:  0.3448, Adjusted R-squared:  0.2944 
 ## F-statistic: 6.842 on 1 and 13 DF,  p-value: 0.02136</code></pre>
-<pre class="r"><code>#This was not presented within the paper, but provided here to display quantitative differences between the two graphs.</code></pre>
 </div>
 </div>
 <div id="replicationsreanalysis" class="section level2">

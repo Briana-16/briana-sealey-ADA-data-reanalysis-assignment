@@ -202,7 +202,7 @@ library(gridExtra)
 library(AICcmodavg)</code></pre>
 <pre class="r"><code>#read in data
 d &lt;- &quot;Hemingway et al._2018_data.csv&quot;
-data &lt;- read_csv(d, col_names = TRUE)</code></pre>
+data &lt;- read_csv(d, col_names = TRUE) #reading in the data</code></pre>
 <pre><code>## Parsed with column specification:
 ## cols(
 ##   Animal = col_character(),
@@ -316,7 +316,7 @@ summary(lm1)</code></pre>
 ## Multiple R-squared:  0.08159,    Adjusted R-squared:  0.01094 
 ## F-statistic: 1.155 on 1 and 13 DF,  p-value: 0.3021</code></pre>
 <pre class="r"><code>lm2 &lt;- lm(prop ~ rel, data = plt)
-summary(lm2)</code></pre>
+summary(lm2) #This was not presented within the paper, but provided here to display quantitative differences between the two graphs.</code></pre>
 <pre><code>## 
 ## Call:
 ## lm(formula = prop ~ rel, data = plt)
@@ -335,7 +335,6 @@ summary(lm2)</code></pre>
 ## Residual standard error: 0.106 on 13 degrees of freedom
 ## Multiple R-squared:  0.3448, Adjusted R-squared:  0.2944 
 ## F-statistic: 6.842 on 1 and 13 DF,  p-value: 0.02136</code></pre>
-<pre class="r"><code>#This was not presented within the paper, but provided here to display quantitative differences between the two graphs.</code></pre>
 </div>
 </div>
 <div id="replicationsreanalysis" class="section level2">
@@ -688,7 +687,7 @@ cbind(mypvalues, theirpvalues)</code></pre>
 ## [14,]     0.005        0.005
 ## [15,]     0.432        0.567</code></pre>
 <p>So who is at fault for the difference in p-values? Perhaps I calculated different p-values because Hemingway et al used a different function or package to complete the binomial tests than I did. Or, similar to the proportion value calculations, Hemingway et al might have calculated the values from a differnet data set than what was uploaded online.</p>
-<p>I couldn’t help but also notice the probability of success values. Here are my calculated probabilty of success values, Hemingway et al’s probability of success values vs. their proportion of choice values calculated from earlier:</p>
+<p>I couldn’t help but also notice the probability of success values. Here are Hemingway et al’s probability of success values calcualted in the binomial test vs. their proportion of choice values calculated from earlier:</p>
 <pre class="r"><code>#Probabilty of success values from my binom test
 my_binomcalc &lt;- c(0.8824, 0.9112, 0.8235, 0.8235, 0.7941, 0.8235, 0.6176, 0.6471, 0.7143, 0.4706, 0.7059, 0.6765, 0.6471, 0.7353, 0.5294) #rounded up to 4 significant figures
 
@@ -951,7 +950,7 @@ aictab(val, weights = TRUE) #Delta AIC values are the same; also note Model 3 ca
 <div id="summarydiscussion" class="section level2">
 <h2>Summary/Discussion</h2>
 <p>Discussion of the specificities in success for each replication are embedded in the text throughout this document. Overall, replications were successful, except for the the binomial test, when trying to replicate a few of the reported p-values and probabilty of success. Nonetheless, despite these differences, p-values still fell within the significant vs. insignificant threshold and probabiity of success were realitvely similar.</p>
-<p>Although not required, I would have liked to replicate the chi-square differences and the quadratic models, but I could not decipher the code in time before submitting this assignment. I think if the statiscal analysis section in the article provided the functions, package or strategy for testing the model comparisons using chi-square tests (and I had another weekend), I might have worked out the replication.</p>
+<p>Although not required, I would have liked to replicate the chi-square differences between models and the quadratic models, but I could not decipher the code in time before submitting this assignment. I think if the statiscal analysis section in the article provided the functions, package or strategy for testing the model comparisons using chi-square tests (and I had another weekend), I might have worked out the replication.</p>
 <p>This was a great exercise in practicing the replication of data in science. Research should not be falsified, fabricated or plagiarized. It’s important that data can be replicated not only experimentally (set up the same experiment and repeat the tests) but also statistically (take someone else’s data and replicate the calculations) to ensure that the scientific community are publishing honest work.</p>
 </div>
 <div id="references" class="section level2">
